@@ -3,6 +3,7 @@
 LISTÃO DE LINGUAGEM SQL
 Aluno: Fernando Engi Morais
 Banco de dados: TSQL2012
+LINK DO GITHUB QUE VERSIONEI OS CÓDIGOS CASO TENHA INTERESSE EM OLHAR MEUS ESTUDOS E PROJETOS: https://github.com/Fernando-Engi/List-oAtvSQL
 ============================================================
 */
 
@@ -51,7 +52,6 @@ ON t1.empid = t3.empid
 
 WHERE t2.country = 'UK'
 
-
 GO
 
 
@@ -61,6 +61,19 @@ GO
 -- (country), onde o país do cliente seja Brasil, ordernado pela data do pedido mais recente.
 
 -- RESPOSTA:
+SELECT t1.orderid AS NumPedido, t1.orderdate AS DataPedido, t2.contactname AS Contato, t3.firstname AS Nome, t3.lastname AS Sobrenome, t2.country AS País
+
+FROM sales.orders AS t1
+
+INNER JOIN Sales.Customers AS t2 
+ON t1.custid = t2.custid
+
+INNER JOIN HR.Employees AS t3
+ON t1.empid = t3.empid
+
+WHERE t2.country = 'Brazil'
+
+ORDER BY DataPedido DESC
 
 GO
 
@@ -72,7 +85,23 @@ GO
 -- entrega seja Shipper ETYNR ou Shipper GVSUA. Ordene pelo número do pedido.
 
 -- RESPOSTA:
+SELECT t1.orderid AS NumPedido, t1.orderdate AS DtPedido, t3.firstname AS nome, t3.lastname AS Sobrenome, t3.country, t4.companyname AS NomeEmp
 
+FROM sales.orders AS t1
+
+INNER JOIN Sales.Customers AS t2 
+ON t1.custid = t2.custid 
+
+INNER JOIN HR.Employees AS t3
+ON t1.empid = t3.empid
+
+INNER JOIN sales.Shippers AS t4
+ON t1.shipperid = t4.shipperid
+
+WHERE t3.country = 'USA'
+AND (t4.companyname = 'Shipper ETYNR' OR t4.companyname = 'Shipper GVSUA')
+
+ORDER BY NumPedido
 
 GO
 
@@ -92,7 +121,6 @@ consultas:
 -- o preço do produto (unitprice) seja menor que 30, ordenado pelo preço de forma descendente.
 
 -- RESPOSTA:
-
 
 GO
 
