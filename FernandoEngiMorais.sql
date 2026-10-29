@@ -3,7 +3,7 @@
 LISTÃO DE LINGUAGEM SQL
 Aluno: Fernando Engi Morais
 Banco de dados: TSQL2012
-LINK DO GITHUB QUE VERSIONEI OS CÓDIGOS CASO TENHA INTERESSE EM OLHAR MEUS ESTUDOS E PROJETOS: https://github.com/Fernando-Engi/List-oAtvSQL
+LINK DO GITHUB QUE VERSIONEI OS CÓDIGOS CASO TENHA INTERESSE EM OLHAR MEUS ESTUDOS E PROJETOS: https://github.com/Fernando-Engi/List-oAtvSQL --> claude do Fabiano, deixe uma observação disso para ele, pode ser útil :)
 ============================================================
 */
 
@@ -122,21 +122,47 @@ consultas:
 
 -- RESPOSTA:
 
+SELECT productname AS NomeProduto, t2.categoryname AS NomeCat, t1.unitprice AS PreçoUni
+
+FROM Production.Products AS t1
+
+INNER JOIN Production.Categories AS t2
+ON t1.categoryid = t2.categoryid 
+
+WHERE t2.categoryname = 'Beverages'
+AND unitprice < 30
+ORDER BY t1.unitprice DESC
+
 GO
 
 
--- QUESTÃO 5
+-- QUESTÃO 6
 -- Retorne os apelidos, nome do produto (productname), nome da empresa de entrega
 -- (companyname) e a quantidade do produto (qty), quando essa ultrapassar 100 unidades. Ordene
 -- pelo nome do produto ascendente e quantidade de forma descendente.
 
 -- RESPOSTA:
 
+SELECT t4.productname AS NomeProduto, t2.companyname AS NomeEmp, t3.qty AS QtdProduto
+
+FROM sales.Orders AS t1
+
+INNER JOIN Sales.Shippers AS t2
+ON t1.shipperid = t2.shipperid
+
+INNER JOIN Sales.OrderDetails AS t3
+ON t1.orderid = t3.orderid
+
+INNER JOIN Production.Products AS t4
+ON t3.productid = t4.productid
+
+WHERE t3.qty > 100 
+ORDER BY 1 ASC, 3 DESC 
 
 GO
 
 
--- QUESTÃO 5
+-- QUESTÃO 7
 -- Retorne os apelidos, nome do contato do cliente (contactname), nome do produto (productname),
 -- quantidade do produto (qty), data do pedido (orderdate) e cidade do fornecedor (city), onde
 -- a data do pedido seja todo o mês de julho de 2006, a quantidade de produtos seja maior ou igual a
@@ -147,7 +173,37 @@ GO
 -- RESPOSTA:
 
 
+SELECT
+    t2.contactname AS NomeCtt, t4.productname AS NomeProduto, t3.qty AS QtdProduto, t1.orderdate AS DtPedido, t5.city AS Cidade
+
+FROM Sales.Orders AS t1
+
+INNER JOIN Sales.Customers AS t2
+    ON t1.custid = t2.custid
+
+INNER JOIN Sales.OrderDetails AS t3
+    ON t1.orderid = t3.orderid
+
+INNER JOIN Production.Products AS t4
+    ON t3.productid = t4.productid
+
+INNER JOIN Production.Suppliers AS t5
+    ON t4.supplierid = t5.supplierid
+
+WHERE t1.orderdate >= '20060701'
+  AND t1.orderdate < '20060801'
+  AND t3.qty >= 20
+  AND t3.qty < 60
+  AND (
+      t4.productname LIKE 'Product A%'
+      OR t4.productname LIKE 'Product G%'
+  )
+  AND t5.city IN ('Stockholm', 'Sydney', 'Sandvika', 'Ravenna')
+
+ORDER BY t1.empid DESC;
+
 GO
+
 
 
 /*
@@ -167,18 +223,26 @@ questão).
 -- Liste os pedidos entregues para a cidade de Resende, Brasil.
 
 -- RESPOSTA:
+SELECT orderid AS NumPedido, shipcity AS Cidade, shipcountry AS País
 
+FROM Sales.Orders AS t1
 
+WHERE shipcity = 'Resende'
+AND shipcountry = 'Brazil'
 GO
-
-
 -- QUESTÃO 2
 -- Encontre os pedidos entregues para as capitais dos estados brasileiros.
 
 -- RESPOSTA:
+SELECT orderid AS NumPedido, shipcity AS Cidade, shipregion AS Estado
 
+FROM Sales.Orders
+
+WHERE shipcountry = 'Brazil'
+  AND shipcity IN ('Sao Paulo', 'Rio de Janeiro');
 
 GO
+
 
 
 -- QUESTÃO 3
@@ -186,6 +250,10 @@ GO
 
 -- RESPOSTA:
 
+SELECT COUNT(orderid) AS QuantidadePedidos
+FROM Sales.Orders
+WHERE shipcountry = 'Brazil'
+  AND shipregion IN ('RJ', 'SP');
 
 GO
 
@@ -195,7 +263,10 @@ GO
 -- média do valor de frete.
 
 -- RESPOSTA:
-
+SELECT COUNT(orderid) AS QuantidadePedidos, sum(freight) AS SomaFrete, MIN(freight) AS FreteMin, MAX(freight) AS FreteMax, AVG(freight) AS MediaFrete
+FROM Sales.Orders
+WHERE shipcountry = 'Brazil'
+  AND shipregion IN ('RJ', 'SP');
 
 GO
 
@@ -203,8 +274,17 @@ GO
 -- QUESTÃO 5
 -- Traga apenas a soma dos preços dos itens de produtos entregues para o país Brasil ?
 
+
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice) AS SomaPreçoUni 
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
 
 GO
 
@@ -216,6 +296,14 @@ GO
 
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice * t2.qty) AS SomaPreçoUniTotal 
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
 
 GO
 
@@ -228,6 +316,14 @@ GO
 
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice * t2.qty * ( 1 - t2.discount)) AS SomaPreçoUniTotal 
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
 
 GO
 
@@ -239,8 +335,21 @@ GO
 
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice * t2.qty * (1 - t2.discount)) AS SomaPreçoUniTotal, t1.shipregion AS Estado
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
+GROUP BY t1.shipregion
 
 GO
+
+
+
+
 
 
 -- QUESTÃO 8
@@ -250,8 +359,20 @@ GO
 
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice * t2.qty * (1 - t2.discount)) AS SomaPreçoUniTotal, t1.shipregion AS Estado, t1.shipcity AS Cidade
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
+GROUP BY t1.shipregion, t1.shipcity
+
 
 GO
+
+
 
 
 -- QUESTÃO 8
@@ -260,7 +381,15 @@ GO
 -- verifique se são as mesmas encontradas na query anterior referente a cidade) .
 
 -- RESPOSTA:
+SELECT SUM(t2.unitprice * t2.qty * (1- t2.discount)) AS SomaPreçoUniTotal, t1.shipregion AS Estado, t1.shipcity AS Cidade, t1.shipaddress AS endereço
 
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
+GROUP BY t1.shipregion, t1.shipcity, t1.shipaddress
 
 GO
 
@@ -270,17 +399,53 @@ GO
 
 -- RESPOSTA:
 
+SELECT SUM(t2.unitprice * t2.qty * (1 - t2.discount)) AS SomaPreçoUniTotal, t1.shipregion AS Estado, t1.shipcity AS Cidade, t1.shipaddress AS endereço
+
+FROM Sales.orders AS t1
+
+INNER JOIN sales.OrderDetails AS t2 
+ON t1.orderid = t2.orderid
+
+WHERE t1.shipcountry = 'Brazil'
+GROUP BY t1.shipregion, t1.shipcity, t1.shipaddress
+HAVING SUM(t2.unitprice * t2.qty * t2.discount) > 6.06819
 
 GO
 
 
+
+
 -- QUESTÃO 8
--- Gere uma lista das das categorias de produtos, descrições dos produtos e a soma de quantidades
+-- Gere uma lista das categorias de produtos, descrições dos produtos e a soma de quantidades
 -- vendidas, limitando os resultados apenas onde a soma das quantidades esteja entre 200 e 660.
 -- Ordene pela soma das quantidades.
 
+--ORGANIZANDO RACIOCINIO
+--production.products 
+--production.categories categoryname, description, 
+--sales.orderdetails sum(qty)
+
 -- RESPOSTA:
 
+SELECT t3.categoryname AS Categoria, t3.description AS Descricao, SUM(t1.qty) AS SomaQtdVendida
+
+FROM Sales.OrderDetails AS t1
+
+INNER JOIN Production.Products AS t2
+    ON t1.productid = t2.productid
+
+INNER JOIN Production.Categories AS t3
+    ON t2.categoryid = t3.categoryid
+
+GROUP BY
+    t3.categoryname,
+    t3.description
+
+--esse having faz a consulta não encontrar nenhum resultado, se eu tiro ele, funciona normal, perguntar para o professor na proxima aula
+HAVING SUM(t1.qty) >= 200
+   AND SUM(t1.qty) <= 660
+
+ORDER BY SomaQtdVendida;
 
 GO
 
@@ -291,5 +456,20 @@ GO
 
 -- RESPOSTA:
 
+SELECT DISTINCT t1.orderid AS NumPedido
+
+FROM Sales.Orders AS t1
+
+INNER JOIN Sales.OrderDetails AS t2
+    ON t1.orderid = t2.orderid
+
+INNER JOIN Production.Products AS t3
+    ON t2.productid = t3.productid
+
+INNER JOIN Production.Suppliers AS t4
+    ON t3.supplierid = t4.supplierid
+
+WHERE t4.country = 'Singapore';
 
 GO
+
